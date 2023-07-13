@@ -1,13 +1,20 @@
+import dayjs from "dayjs";
 import { useCallback, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 import styled from "styled-components";
 
-type Type = "EXCEL" | "BUDGET";
+type Type = "EXCEL" | "TEMPLATE";
 
 type Excel = {
   origin: HTMLTextAreaElement | null;
   seperator: HTMLInputElement | null;
+};
+
+type Name = {
+  min: HTMLInputElement | null;
+  max: HTMLInputElement | null;
+  cloth: HTMLSelectElement | null;
 };
 
 const TOAST_OPTIONS = {
@@ -63,10 +70,37 @@ const Input = styled("input")`
   width: 100%;
 `;
 
+const InputNumber = styled("input")`
+  width: 100px;
+  height: 18px;
+`;
+
+const AgeWrapper = styled("div")`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const MEN_CLOTHING = [
+  {
+    key: 35208,
+    value: "shirt",
+  },
+  { key: 35212, value: "polo" },
+  { key: 35211, value: "tee" },
+  { key: 5610, value: "pants" },
+  { key: 113188, value: "shorts" },
+];
+
 function App() {
   const excelRef = useRef<Excel>({
     origin: null,
     seperator: null,
+  });
+  const nameRef = useRef<Name>({
+    min: null,
+    max: null,
+    cloth: null,
   });
   const [showDetail, setShowDetail] = useState(false);
   const [type, setType] = useState<Type>();
@@ -99,6 +133,42 @@ function App() {
     }
   }
 
+  async function campaign() {
+    const { min, max, cloth } = nameRef.current;
+    const date = dayjs().format("YYYY-M-D");
+    const clothKey = MEN_CLOTHING.find(
+      (item) => item.value === cloth!.value
+    )!.key;
+
+    const result = `[NEWLITB][EN]<Male><${min!.value}-${max!.value}><${
+      cloth!.value
+    }>[ALL]<MIX>[C${clothKey}]<team_fb1_wangyuting>[C5585]<${date}>`;
+
+    await navigator.clipboard.writeText(result);
+    toast("复制成功", {
+      type: "success",
+      ...TOAST_OPTIONS,
+    });
+  }
+
+  async function adSet() {
+    const { min, max, cloth } = nameRef.current;
+    const date = dayjs().format("YYYY-M-D");
+    const clothKey = MEN_CLOTHING.find(
+      (item) => item.value === cloth!.value
+    )!.key;
+
+    const result = `[NEWLITB][MIX]<Male><${min!.value}-${max!.value}><${
+      cloth!.value
+    }>[C${clothKey}][IMG][${date}]<team_fb1_wangyuting>[C5585]`;
+
+    await navigator.clipboard.writeText(result);
+    toast("复制成功", {
+      type: "success",
+      ...TOAST_OPTIONS,
+    });
+  }
+
   const renderContent = useCallback(() => {
     switch (type) {
       case "EXCEL":
@@ -113,7 +183,7 @@ function App() {
                   excelRef.current.origin = ref;
                 }}
               />
-              <Label>Excel列数据</Label>
+              <Label>分隔符</Label>
               <Input
                 placeholder="请输入转换后的分隔符，默认为,"
                 ref={(ref) => {
@@ -130,8 +200,59 @@ function App() {
             </fieldset>
           </form>
         );
-      case "BUDGET":
-        return <div></div>;
+      case "TEMPLATE":
+        return (
+          <form className="pure-form pure-form-stacked">
+            <fieldset>
+              <Label>年龄段</Label>
+              <AgeWrapper>
+                <InputNumber
+                  type="number"
+                  defaultValue={25}
+                  placeholder="请输入最小年龄"
+                  ref={(ref) => {
+                    nameRef.current.min = ref;
+                  }}
+                />{" "}
+                至{" "}
+                <InputNumber
+                  type="number"
+                  defaultValue={65}
+                  placeholder="请输入最大年龄"
+                  ref={(ref) => {
+                    nameRef.current.max = ref;
+                  }}
+                />
+              </AgeWrapper>
+              <Label>子品类</Label>
+              <select
+                ref={(ref) => {
+                  nameRef.current.cloth = ref;
+                }}
+              >
+                {MEN_CLOTHING.map(({ key, value }) => (
+                  <option key={key}>{value}</option>
+                ))}
+              </select>
+              <AgeWrapper>
+                <button
+                  type="button"
+                  className="pure-button pure-button-primary"
+                  onClick={campaign}
+                >
+                  Campaign
+                </button>
+                <button
+                  type="button"
+                  className="pure-button pure-button-primary"
+                  onClick={adSet}
+                >
+                  ad set
+                </button>
+              </AgeWrapper>
+            </fieldset>
+          </form>
+        );
       default:
         return <></>;
     }
@@ -157,10 +278,10 @@ function App() {
               <Link
                 onClick={() => {
                   setShowDetail(true);
-                  setType("BUDGET");
+                  setType("TEMPLATE");
                 }}
               >
-                预算统计
+                Name 生成
               </Link>
             </ListItem>
           </>
