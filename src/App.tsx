@@ -4,6 +4,7 @@ import { createSignal } from "solid-js";
 import { Toaster } from "solid-toast";
 import Layout from "./components/layout";
 import MenuList from "./components/menu-list";
+import CouponGenerator from "./routes/coupon-generator";
 import ExcelConverter from "./routes/excel-converter";
 import NameGenerator from "./routes/name-generator";
 
@@ -24,6 +25,7 @@ function App() {
         <Layout onBack={handleBack}>
           {selectedId() === 0 && <ExcelConverter />}
           {selectedId() === 1 && <NameGenerator />}
+          {selectedId() === 2 && <CouponGenerator />}
         </Layout>
       )}
       <Toaster position="top-center" />
